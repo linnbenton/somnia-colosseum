@@ -30,7 +30,7 @@ const colosseumContract = new ethers.Contract(
 
 async function runAgentColosseum(fighter1Id, fighter2Id) {
   console.log(
-    `\x1b[36m[Somnia L1]: Menarik data Gladiator #${fighter1Id} dan #${fighter2Id} dari Blockchain...\x1b[0m`,
+    `\x1b[36m[Somnia L1]: Fetching Gladiator data #${fighter1Id} and #${fighter2Id} from Blockchain...\x1b[0m`,
   );
 
   let f1, f2;
@@ -39,7 +39,7 @@ async function runAgentColosseum(fighter1Id, fighter2Id) {
     f2 = await colosseumContract.getGladiator(fighter2Id);
   } catch (error) {
     console.log(
-      `\x1b[33m[Notice]: Kontrak belum terbaca di address tersebut. Menjalankan mode simulasi gladiator...\x1b[0m`,
+      `\x1b[33m[Notice]: Contract not detected at the specified address. Running gladiator simulation mode...\x1b[0m`,
     );
     f1 = {
       id: 1,
@@ -47,7 +47,7 @@ async function runAgentColosseum(fighter1Id, fighter2Id) {
       strength: 6,
       agility: 7,
       intelligence: 2,
-      strategyPrompt: "Gunakan kelincahan penuh untuk menusuk dari belakang!",
+      strategyPrompt: "Execute maximum agility to perform a backstab attack!",
     };
     f2 = {
       id: 2,
@@ -55,12 +55,13 @@ async function runAgentColosseum(fighter1Id, fighter2Id) {
       strength: 4,
       agility: 4,
       intelligence: 7,
-      strategyPrompt: "Analisis kelemahan lawan lalu tembak dari jarak jauh.",
+      strategyPrompt:
+        "Analyze enemy vulnerabilities and strike from long range.",
     };
   }
 
   console.log(
-    `\x1b[35m[AI Agent Engine]: Mengevaluasi Prompt Strategi Pertempuran...\x1b[0m`,
+    `\x1b[35m[AI Agent Engine]: Evaluating Combat Strategy Prompts...\x1b[0m`,
   );
 
   let battleLog = "";
@@ -68,7 +69,7 @@ async function runAgentColosseum(fighter1Id, fighter2Id) {
 
   if (!hasApiKey) {
     console.log(
-      `\x1b[33m[Local AI Simulator]: API Key kosong, menjalankan Local Deterministik Engine...\x1b[0m`,
+      `\x1b[33m[Local AI Simulator]: Empty API Key, executing Local Deterministic Engine...\x1b[0m`,
     );
 
     const str1 = Number(f1.strength);
@@ -82,18 +83,18 @@ async function runAgentColosseum(fighter1Id, fighter2Id) {
     let score1 = str1 * 1.5 + agi1 * 1.2 + int1 * 1.0;
     let score2 = str2 * 1.5 + agi2 * 1.2 + int2 * 1.0;
 
-    if (f1.strategyPrompt.toLowerCase().includes("kelincahan") && agi1 > agi2)
+    // FIX LOGIC: Mengubah pencocokan kata kunci ke varian kalimat baru
+    if (f1.strategyPrompt.toLowerCase().includes("agility") && agi1 > agi2)
       score1 += 2;
-    if (f2.strategyPrompt.toLowerCase().includes("analisis") && int2 > int1)
+    if (f2.strategyPrompt.toLowerCase().includes("analyze") && int2 > int1)
       score2 += 2;
 
     winnerId = score1 >= score2 ? Number(f1.id) : Number(f2.id);
     const winnerName = score1 >= score2 ? f1.name : f2.name;
     const loserName = score1 >= score2 ? f2.name : f1.name;
 
-    battleLog = `[Ronde 1]: ${f1.name} melancarkan strategi: "${f1.strategyPrompt}".\n[Ronde 2]: ${f2.name} mencoba membalas namun kalkulasi taktis memihak lawan.\n\nWINNER_ID: [${winnerId}] - ${winnerName} menang atas ${loserName} secara mutlak!`;
+    battleLog = `[Round 1]: ${f1.name} initiates strategy: "${f1.strategyPrompt}".\n[Round 2]: ${f2.name} attempts to counter, but tactical calculations favor the opponent.\n\nWINNER_ID: [${winnerId}] - ${winnerName} defeats ${loserName} with absolute dominance!`;
   } else {
-    // Jika nanti lu udah dapet API Key, blok ini yang bakal jalan otomatis memanggil LLM Somnia asli
     try {
       const response = await kit.chat.completions.create({
         model: "somnia-llama-3-70b-deterministic",
@@ -108,13 +109,13 @@ async function runAgentColosseum(fighter1Id, fighter2Id) {
       const match = battleLog.match(/WINNER_ID:\s*\[(\d+)\]/);
       winnerId = match ? parseInt(match[1]) : Number(f1.id);
     } catch (e) {
-      console.log("Gagal memanggil API Somnia, beralih ke local fallback.");
+      console.log("Failed to call Somnia API, reverting to local fallback.");
       winnerId = Number(f1.id);
     }
   }
 
   console.log(
-    `\x1b[32m--- HASIL PERTANDINGAN ---\n${battleLog}\n--------------------------\x1b[0m`,
+    `\x1b[32m--- BATTLE TOURNAMENT RESULTS ---\n${battleLog}\n---------------------------------\x1b[0m`,
   );
 
   // Kirim tx balik ke blockchain
@@ -123,7 +124,7 @@ async function runAgentColosseum(fighter1Id, fighter2Id) {
     const loserId = winnerId === Number(f1.id) ? Number(f2.id) : Number(f1.id);
 
     console.log(
-      `\x1b[33m[Consensus]: Mengunci skor pemenang ID #${winnerId} ke Somnia L1...\x1b[0m`,
+      `\x1b[33m[Consensus]: Locking winning score for ID #${winnerId} onto Somnia L1...\x1b[0m`,
     );
     const tx = await colosseumContract.recordBattleResult(
       battleId,
@@ -133,11 +134,11 @@ async function runAgentColosseum(fighter1Id, fighter2Id) {
     );
     await tx.wait();
     console.log(
-      `\x1b[32m[Sukses]: Transaksi On-Chain Berhasil! Hash: ${tx.hash}\x1b[0m`,
+      `\x1b[32m[Success]: On-Chain Transaction Successful! Hash: ${tx.hash}\x1b[0m`,
     );
   } catch (txError) {
     console.log(
-      `\x1b[31m[Simulated Tx]: Log tercatat secara lokal (Kontrak belum di-deploy/bukan Owner).\x1b[0m`,
+      `\x1b[31m[Simulated Tx]: Log recorded locally (Contract unverified or sender is not the Owner).\x1b[0m`,
     );
   }
 }
