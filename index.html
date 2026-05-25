@@ -139,7 +139,7 @@
             onclick="connectWallet()"
             class="bg-gradient-to-r from-cyberBlue to-cyberPurple hover:opacity-90 font-mono text-sm font-bold text-darkBg px-5 py-2 rounded-lg shadow-lg hover:shadow-cyan-500/20 transition duration-300"
           >
-            <i class="fa-solid fa-wallet mr-2"></i>Hubungkan Wallet
+            <i class="fa-solid fa-wallet mr-2"></i>Connect Wallet
           </button>
         </div>
       </div>
@@ -161,7 +161,8 @@
               Mint Gladiator AI NFT
             </h2>
             <p class="text-xs text-slate-400 mt-1">
-              Sesuaikan statistik dasar dan latih taktik berpikir petarung Anda.
+              Customize base statistics and train your fighter's cognitive
+              combat tactics.
             </p>
           </div>
 
@@ -169,7 +170,7 @@
           <div>
             <label
               class="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-2"
-              >Nama Gladiator</label
+              >Gladiator Name</label
             >
             <div class="relative">
               <span
@@ -191,12 +192,12 @@
             <div class="flex justify-between items-center mb-2">
               <label
                 class="text-xs font-mono uppercase tracking-wider text-slate-300"
-                >Alokasi Statistik</label
+                >Attribute Allocation</label
               >
               <span
                 id="stat-points-left"
                 class="text-xs font-mono text-cyberBlue font-bold bg-cyberBlue/10 px-2 py-0.5 rounded"
-                >Sisa Poin: 0/15</span
+                >Points Left: 0/15</span
               >
             </div>
             <div
@@ -275,14 +276,14 @@
                 Strategy (Prompt)
               </label>
               <span class="text-[10px] text-slate-500 font-mono"
-                >Max 150 kata</span
+                >Max 150 words</span
               >
             </div>
             <textarea
               id="glad-prompt"
               rows="4"
               class="bg-slate-950/80 border border-slate-800 focus:border-cyberPurple text-white text-sm rounded-lg focus:ring-1 focus:ring-cyberPurple block w-full p-3 outline-none transition duration-200 resize-none font-mono text-xs leading-relaxed"
-              placeholder="Contoh: Bermain taktis. Jika darah musuh di atas 60%, prioritaskan counter-attack untuk menghemat stamina. Jika darah saya di bawah 40%, gunakan kemampuan bertaruh memulihkan HP lalu lakukan manuver kritis tak terduga."
+              placeholder="Example: Play tactically. If the opponent's health is above 60%, prioritize counter-attacks to conserve stamina. If my health drops below 40%, trigger an HP recovery gamble ability and execute unexpected critical maneuvers."
             ></textarea>
           </div>
 
@@ -321,7 +322,7 @@
             <div
               class="text-xs font-mono text-cyberBlue font-semibold bg-cyberBlue/10 border border-cyberBlue/20 px-2.5 py-1 rounded-full"
             >
-              Prize Pool: $5,000 SOM
+              Prize Pool: $5,000 SOMI
             </div>
           </div>
 
@@ -345,7 +346,7 @@
                 id="f0Name"
                 class="font-mono font-bold text-sm tracking-wide text-white truncate"
               >
-                MENUNGGU SYNC...
+                Awaiting Sync..
               </h4>
 
               <div class="mt-4">
@@ -428,7 +429,7 @@
               <h4
                 class="font-mono font-bold text-sm tracking-wide text-white truncate"
               >
-                NexusReaper.EXE
+                NexusReader.EXE
               </h4>
 
               <!-- Health Bar -->
@@ -521,8 +522,8 @@
             class="p-4 flex-grow overflow-y-auto font-mono text-xs text-emerald-400/90 leading-relaxed custom-scrollbar flex flex-col gap-2"
           >
             <div class="text-slate-500">
-              [SYSTEM] Terminal siap. Selesaikan minting Gladiator terlebih
-              dahulu untuk mempersiapkan agent-first contract.
+              [SYSTEM] Terminal ready. Please complete your Gladiator minting
+              sequence first to initialize the agent-first contract variables.
             </div>
           </div>
         </div>
@@ -873,7 +874,7 @@
       }
     </script>
     <script>
-      // Konfigurasi Alamat Kontrak Somnia Lu
+      // Somnia Contract Address Configuration
       const contractAddress = "0x17F24D3b8Bc1150553b54Da30B4d993AcB889212";
 
       const contractABI = [
@@ -883,22 +884,21 @@
 
       let provider, signer, contract;
 
-      // Fungsi untuk mengoneksikan MetaMask lu
+      // Function to connect MetaMask and handle automatic network switching
       async function connectWallet() {
         if (window.ethereum) {
           try {
-            // Chain ID Somnia Shannon Testnet biasanya tetap atau disesuaikan,
-            // Kita gunakan target hex 0xc487 (50311). Jika Chain ID berubah, ganti di sini.
+            // Target Chain ID for Somnia Shannon Testnet (50311 in Hex is 0xc487)
             const targetChainId = "0xc487";
 
-            // Paksa MetaMask pindah ke Somnia Shannon Testnet otomatis
+            // Force MetaMask to switch to Somnia Shannon Testnet automatically
             try {
               await window.ethereum.request({
                 method: "wallet_switchEthereumChain",
                 params: [{ chainId: targetChainId }],
               });
             } catch (switchError) {
-              // Jika belum terdaftar di MetaMask juri / user, daftarkan dengan RPC & Explorer Baru Lu:
+              // If the network is not added to the user's MetaMask, add it automatically
               if (switchError.code === 4902) {
                 await window.ethereum.request({
                   method: "wallet_addEthereumChain",
@@ -911,10 +911,10 @@
                         symbol: "STG",
                         decimals: 18,
                       },
-                      rpcUrls: ["https://dream-rpc.somnia.network"], // RPC BARU LU
+                      rpcUrls: ["https://dream-rpc.somnia.network"],
                       blockExplorerUrls: [
                         "https://shannon-explorer.somnia.network/",
-                      ], // EXPLORER BARU LU
+                      ],
                     },
                   ],
                 });
@@ -923,7 +923,7 @@
               }
             }
 
-            // Inisialisasi Ethers seperti biasa setelah jaringan dipastikan aman
+            // Initialize Ethers provider and signer after ensuring correct network
             provider = new ethers.BrowserProvider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             signer = await provider.getSigner();
@@ -935,28 +935,31 @@
 
             console.log("Wallet Connected to Somnia Shannon Testnet!");
 
-            // Update UI teks tombol wallet
+            // Format and display shortened wallet address on the connect button
             const userAddress = await signer.getAddress();
             if (document.getElementById("btn-connect")) {
               document.getElementById("btn-connect").innerHTML =
                 `<i class="fa-solid fa-wallet mr-2"></i>${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
             }
 
+            // Sync blockchain data with the UI immediately after connecting
             await updateUIWithBlockchainData();
           } catch (err) {
-            console.error("Koneksi gagal:", err);
+            console.error("Wallet connection failed:", err);
           }
         } else {
-          alert("MetaMask tidak terdeteksi!");
+          alert(
+            "MetaMask not detected! Please install the MetaMask extension.",
+          );
         }
       }
 
-      // Fungsi memasukkan data blockchain ke elemen UI lama lu
+      // Function to sync blockchain data into your UI elements
       async function updateUIWithBlockchainData() {
         if (!contract) return;
         try {
           // ==========================================
-          // 1. AMBIL & UPDATE DATA GLADIATOR #0 (Pemain)
+          // 1. FETCH & UPDATE GLADIATOR #0 (Player) DATA
           // ==========================================
           const f0 = await contract.getGladiator(0);
 
@@ -965,7 +968,7 @@
           if (document.getElementById("f0Wins"))
             document.getElementById("f0Wins").innerText = f0.wins.toString();
 
-          // Update 3 angka stats dasar di UI lu
+          // Update base statistics in the UI
           if (document.getElementById("f0Str"))
             document.getElementById("f0Str").innerText = f0.strength.toString();
           if (document.getElementById("f0Agi"))
@@ -975,7 +978,7 @@
               f0.intelligence.toString();
 
           // ==========================================
-          // 2. AMBIL & UPDATE DATA GLADIATOR #1 (Boss / Lawan)
+          // 2. FETCH & UPDATE GLADIATOR #1 (Boss / Opponent) DATA
           // ==========================================
           const f1 = await contract.getGladiator(1);
 
@@ -985,20 +988,20 @@
             document.getElementById("f1Wins").innerText = f1.wins.toString();
 
           console.log(
-            "Data UI & Stats sukses disinkronkan total dengan Somnia L1!",
+            "UI Dashboard & Statistics successfully synchronized with Somnia L1!",
           );
         } catch (err) {
-          console.error("Gagal memuat data dari blockchain:", err);
+          console.error("Failed to load data from blockchain:", err);
         }
       }
 
-      // Fungsi untuk mengambil input form web dan eksekusi minting on-chain
+      // Function to gather web form inputs and execute on-chain minting
       async function mintGladiator() {
         if (!contract) {
-          return alert("Hubungkan MetaMask lu terlebih dahulu!");
+          return alert("Please connect your MetaMask wallet first!");
         }
 
-        // Membaca ID input dari panel kiri HTML lu secara presisi
+        // Fetch values from your HTML input fields
         const name = document.getElementById("glad-name").value;
         const str = parseInt(document.getElementById("stat-str").value);
         const agi = parseInt(document.getElementById("stat-agi").value);
@@ -1006,29 +1009,29 @@
         const prompt = document.getElementById("glad-prompt").value;
 
         if (!name || !prompt) {
-          return alert("Nama dan Prompt Strategi wajib diisi!");
+          return alert("Gladiator Name and Strategy Prompt are required!");
         }
 
         try {
-          console.log(`Mengirim transaksi minting untuk: ${name}...`);
+          console.log(`Sending mint transaction for: ${name}...`);
           const tx = await contract.mintGladiator(name, str, agi, int, prompt);
           console.log(
-            `Transaksi terkirim! Menunggu konfirmasi blok. Hash: ${tx.hash}`,
+            `Transaction sent! Waiting for block confirmation. Hash: ${tx.hash}`,
           );
 
           await tx.wait();
           alert(
-            `Sukses! Gladiator ${name} berhasil dicetak di Jaringan Somnia!`,
+            `Success! Gladiator "${name}" has been minted on the Somnia Network!`,
           );
 
-          // Otomatis refresh data di layar web setelah transaksi kelar
+          // Automatically refresh the dashboard data once the transaction is confirmed
           await updateUIWithBlockchainData();
         } catch (err) {
-          console.error("Minting gagal:", err);
+          console.error("Minting process failed:", err);
         }
       }
 
-      // Jalankan otomatis saat web dibuka (jika dompet sudah terhubung sebelumnya)
+      // Auto-connect if the wallet provider is available and already authorized
       if (window.ethereum) {
         connectWallet();
       }
