@@ -1,0 +1,24 @@
+{
+  "name": "somnia-colosseum",
+  "version": "1.0.0",
+  "description": "On-Chain Agent Colosseum - Fully Autonomous AI Game on Somnia L1",
+  "main": "agent.js",
+  "type": "module",
+  "scripts": {
+    "start": "node agent.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "somnia",
+    "ai-agent",
+    "web3",
+    "gaming"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "ethers": "^6.16.0",
+    "somnia-agent-kit": "^3.0.11"
+  }
+}

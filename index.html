@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>On-Chain Agent Colosseum | Somnia L1</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', "sans-serif"],
+              mono: ["Orbitron", "sans-serif"],
+            },
+            colors: {
+              darkBg: "#080c14",
+              cardBg: "#0f172a",
+              cyberPink: "#ff2a5f",
+              cyberBlue: "#00f3ff",
+              cyberPurple: "#b500ff",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background-color: #05070c;
+        background-image:
+          radial-gradient(
+            at 10% 20%,
+            rgba(181, 0, 255, 0.15) 0px,
+            transparent 50%
+          ),
+          radial-gradient(
+            at 90% 80%,
+            rgba(0, 243, 255, 0.15) 0px,
+            transparent 50%
+          );
+        background-attachment: fixed;
+      }
+      .neon-border-blue {
+        box-shadow:
+          0 0 15px rgba(0, 243, 255, 0.3),
+          inset 0 0 15px rgba(0, 243, 255, 0.1);
+        border: 1px solid rgba(0, 243, 255, 0.5);
+      }
+      .neon-border-pink {
+        box-shadow:
+          0 0 15px rgba(ff, 42, 95, 0.3),
+          inset 0 0 15px rgba(ff, 42, 95, 0.1);
+        border: 1px solid rgba(255, 42, 95, 0.5);
+      }
+      .glow-text-purple {
+        text-shadow: 0 0 8px rgba(181, 0, 255, 0.8);
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #0f172a;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #1e293b;
+        border-radius: 3px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #334155;
+      }
+      @keyframes pulse-fast {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.05);
+        }
+      }
+      .battle-pulse {
+        animation: pulse-fast 1.5s infinite ease-in-out;
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
+  </head>
+  <body class="text-slate-100 min-h-screen flex flex-col font-sans">
+    <!-- Header / Navbar -->
+    <header
+      class="border-b border-slate-800 bg-darkBg/80 backdrop-blur-md sticky top-0 z-50"
+    >
+      <div
+        class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="bg-gradient-to-tr from-cyberPurple to-cyberBlue p-2.5 rounded-xl shadow-[0_0_15px_rgba(181,0,255,0.4)]"
+          >
+            <i class="fa-solid fa-shield-halved text-xl text-white"></i>
+          </div>
+          <div>
+            <h1
+              class="font-mono font-black text-xl tracking-wider bg-gradient-to-r from-white via-cyberBlue to-cyberPurple bg-clip-text text-transparent"
+            >
+              SOMNIA AGENT COLOSSEUM
+            </h1>
+            <span
+              class="text-[10px] text-cyberBlue font-mono uppercase tracking-widest"
+              >Deterministic AI Battle Engine L1</span
+            >
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div
+            class="hidden md:flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-full px-4 py-1.5 text-xs font-mono"
+          >
+            <span
+              class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"
+            ></span>
+            <span class="text-slate-400">Somnia Agentic L1 Testnet</span>
+          </div>
+          <button
+            id="btn-connect"
+            onclick="connectWallet()"
+            class="bg-gradient-to-r from-cyberBlue to-cyberPurple hover:opacity-90 font-mono text-sm font-bold text-darkBg px-5 py-2 rounded-lg shadow-lg hover:shadow-cyan-500/20 transition duration-300"
+          >
+            <i class="fa-solid fa-wallet mr-2"></i>Hubungkan Wallet
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main
+      class="flex-grow max-w-7xl mx-auto px-6 py-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-8"
+    >
+      <!-- PANEL KIRI: Minting & Strategi (4 Kolom) -->
+      <section class="lg:col-span-5 flex flex-col gap-6">
+        <div
+          class="bg-cardBg/60 backdrop-blur-md border border-slate-800 p-6 rounded-2xl flex flex-col gap-5"
+        >
+          <div class="border-b border-slate-800 pb-4">
+            <h2
+              class="font-mono text-lg font-bold text-white uppercase flex items-center gap-2"
+            >
+              <i class="fa-solid fa-wand-magic-sparkles text-cyberBlue"></i>
+              Mint Gladiator AI NFT
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Sesuaikan statistik dasar dan latih taktik berpikir petarung Anda.
+            </p>
+          </div>
+
+          <!-- Input Nama -->
+          <div>
+            <label
+              class="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-2"
+              >Nama Gladiator</label
+            >
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500 pointer-events-none"
+              >
+                <i class="fa-solid fa-signature"></i>
+              </span>
+              <input
+                type="text"
+                id="glad-name"
+                value="CyberRonin v1.0"
+                class="bg-slate-950/80 border border-slate-800 focus:border-cyberBlue text-white text-sm rounded-lg focus:ring-1 focus:ring-cyberBlue block w-full pl-10 pr-3 py-2.5 outline-none transition duration-200"
+              />
+            </div>
+          </div>
+
+          <!-- Alokasi Stats -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label
+                class="text-xs font-mono uppercase tracking-wider text-slate-300"
+                >Alokasi Statistik</label
+              >
+              <span
+                id="stat-points-left"
+                class="text-xs font-mono text-cyberBlue font-bold bg-cyberBlue/10 px-2 py-0.5 rounded"
+                >Sisa Poin: 0/15</span
+              >
+            </div>
+            <div
+              class="bg-slate-950/50 border border-slate-800/80 rounded-xl p-4 flex flex-col gap-4"
+            >
+              <!-- Strength -->
+              <div>
+                <div
+                  class="flex justify-between text-xs font-mono text-slate-400 mb-1"
+                >
+                  <span
+                    ><i class="fa-solid fa-dumbbell text-red-500 mr-1.5"></i>
+                    STRENGTH (STR)</span
+                  >
+                  <span id="str-val" class="text-white font-bold">5</span>
+                </div>
+                <input
+                  type="range"
+                  id="stat-str"
+                  min="1"
+                  max="10"
+                  value="5"
+                  class="w-full accent-cyberPink"
+                />
+              </div>
+              <!-- Agility -->
+              <div>
+                <div
+                  class="flex justify-between text-xs font-mono text-slate-400 mb-1"
+                >
+                  <span
+                    ><i class="fa-solid fa-wind text-emerald-400 mr-1.5"></i>
+                    AGILITY (AGI)</span
+                  >
+                  <span id="agi-val" class="text-white font-bold">5</span>
+                </div>
+                <input
+                  type="range"
+                  id="stat-agi"
+                  min="1"
+                  max="10"
+                  value="5"
+                  class="w-full accent-emerald-400"
+                />
+              </div>
+              <!-- Intelligence -->
+              <div>
+                <div
+                  class="flex justify-between text-xs font-mono text-slate-400 mb-1"
+                >
+                  <span
+                    ><i class="fa-solid fa-brain text-cyberBlue mr-1.5"></i>
+                    INTELLIGENCE (INT)</span
+                  >
+                  <span id="int-val" class="text-white font-bold">5</span>
+                </div>
+                <input
+                  type="range"
+                  id="stat-int"
+                  min="1"
+                  max="10"
+                  value="5"
+                  class="w-full accent-cyberBlue"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Prompt Strategi -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label
+                class="text-xs font-mono uppercase tracking-wider text-slate-300 flex items-center gap-1.5"
+              >
+                <i class="fa-solid fa-terminal text-cyberPurple"></i> AI Combat
+                Strategy (Prompt)
+              </label>
+              <span class="text-[10px] text-slate-500 font-mono"
+                >Max 150 kata</span
+              >
+            </div>
+            <textarea
+              id="glad-prompt"
+              rows="4"
+              class="bg-slate-950/80 border border-slate-800 focus:border-cyberPurple text-white text-sm rounded-lg focus:ring-1 focus:ring-cyberPurple block w-full p-3 outline-none transition duration-200 resize-none font-mono text-xs leading-relaxed"
+              placeholder="Contoh: Bermain taktis. Jika darah musuh di atas 60%, prioritaskan counter-attack untuk menghemat stamina. Jika darah saya di bawah 40%, gunakan kemampuan bertaruh memulihkan HP lalu lakukan manuver kritis tak terduga."
+            ></textarea>
+          </div>
+
+          <button
+            id="btn-mint"
+            onclick="mintGladiator()"
+            class="w-full py-3 bg-gradient-to-r from-cyberPurple via-fuchsia-600 to-cyberPink text-white font-mono font-bold text-sm uppercase rounded-xl shadow-[0_0_20px_rgba(181,0,255,0.3)] hover:shadow-[0_0_25px_rgba(181,0,255,0.5)] transform hover:-translate-y-0.5 active:translate-y-0 transition duration-300"
+          >
+            <i class="fa-solid fa-cube mr-2"></i> Mint & Deploy Agent NFT
+          </button>
+        </div>
+      </section>
+
+      <!-- PANEL KANAN: Arena Pertarungan & Log Blok (7 Kolom) -->
+      <section class="lg:col-span-7 flex flex-col gap-6">
+        <!-- ARENA -->
+        <div
+          class="bg-cardBg/60 backdrop-blur-md border border-slate-800 p-6 rounded-2xl flex flex-col gap-6 relative overflow-hidden"
+        >
+          <div
+            class="absolute -right-16 -top-16 w-36 h-36 bg-cyberBlue/10 blur-3xl rounded-full"
+          ></div>
+          <div
+            class="absolute -left-16 -bottom-16 w-36 h-36 bg-cyberPink/10 blur-3xl rounded-full"
+          ></div>
+
+          <div
+            class="flex justify-between items-center border-b border-slate-800/80 pb-3"
+          >
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
+              <h3 class="font-mono text-sm font-bold text-white tracking-wide">
+                COLOSSEUM LIVE MATCH
+              </h3>
+            </div>
+            <div
+              class="text-xs font-mono text-cyberBlue font-semibold bg-cyberBlue/10 border border-cyberBlue/20 px-2.5 py-1 rounded-full"
+            >
+              Prize Pool: $5,000 SOM
+            </div>
+          </div>
+
+          <!-- Layout Petarung Side-by-Side -->
+          <div class="grid grid-cols-11 gap-4 items-center py-4">
+            <!-- Gladiator A (Pemain) -->
+            <div
+              id="card-player"
+              class="col-span-5 bg-slate-950/80 border border-slate-850 p-4 rounded-xl text-center relative transition duration-300"
+            >
+              <div
+                class="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-cyberPurple text-[9px] font-mono rounded-full font-bold"
+              >
+                MY GLADIATOR
+              </div>
+              <div class="text-3xl text-cyberPurple my-3">
+                <i class="fa-solid fa-robot"></i>
+              </div>
+
+              <h4
+                id="f0Name"
+                class="font-mono font-bold text-sm tracking-wide text-white truncate"
+              >
+                MENUNGGU SYNC...
+              </h4>
+
+              <div class="mt-4">
+                <div
+                  class="flex justify-between text-[10px] font-mono text-slate-400 mb-1"
+                >
+                  <span>HP</span>
+                  <span id="hp-txt-a">100/100</span>
+                </div>
+                <div
+                  class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-800"
+                >
+                  <div
+                    id="hp-bar-a"
+                    class="bg-gradient-to-r from-cyberPurple to-fuchsia-500 h-full transition-all duration-300"
+                    style="width: 100%"
+                  ></div>
+                </div>
+              </div>
+
+              <div
+                class="grid grid-cols-3 gap-1 mt-4 text-[10px] font-mono text-slate-400"
+              >
+                <div
+                  class="bg-slate-900/80 p-1.5 rounded border border-slate-800"
+                >
+                  <span class="block font-bold text-red-500">STR</span>
+                  <span id="f0Str">0</span>
+                </div>
+                <div
+                  class="bg-slate-900/80 p-1.5 rounded border border-slate-800"
+                >
+                  <span class="block font-bold text-emerald-400">AGI</span>
+                  <span id="f0Agi">0</span>
+                </div>
+                <div
+                  class="bg-slate-900/80 p-1.5 rounded border border-slate-800"
+                >
+                  <span class="block font-bold text-cyberBlue">INT</span>
+                  <span id="f0Int">0</span>
+                </div>
+              </div>
+
+              <div
+                class="mt-3 text-[10px] font-mono text-green-400 border-t border-slate-900 pt-2"
+              >
+                🏆 GLOBAL WINS: <span id="f0Wins" class="font-bold">0</span>
+              </div>
+            </div>
+
+            <!-- VS Divider -->
+            <div
+              class="col-span-1 text-center flex flex-col items-center justify-center"
+            >
+              <div
+                class="h-8 w-[1px] bg-gradient-to-b from-transparent to-slate-700"
+              ></div>
+              <span
+                class="font-mono font-black text-sm text-slate-400 my-2 px-1 py-1 rounded bg-slate-900 border border-slate-800 shadow-lg"
+                >VS</span
+              >
+              <div
+                class="h-8 w-[1px] bg-gradient-to-t from-transparent to-slate-700"
+              ></div>
+            </div>
+
+            <!-- Gladiator B (Somnia AI Boss) -->
+            <div
+              id="card-boss"
+              class="col-span-5 bg-slate-950/80 border border-slate-850 p-4 rounded-xl text-center relative transition duration-300"
+            >
+              <div
+                class="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-cyberPink text-[9px] font-mono rounded-full font-bold text-white"
+              >
+                CHAMPION BOSS
+              </div>
+              <div class="text-3xl text-cyberPink my-3">
+                <i class="fa-solid fa-ghost"></i>
+              </div>
+              <h4
+                class="font-mono font-bold text-sm tracking-wide text-white truncate"
+              >
+                NexusReaper.EXE
+              </h4>
+
+              <!-- Health Bar -->
+              <div class="mt-4">
+                <div
+                  class="flex justify-between text-[10px] font-mono text-slate-400 mb-1"
+                >
+                  <span>HP</span>
+                  <span id="hp-txt-b">120/120</span>
+                </div>
+                <div
+                  class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-800"
+                >
+                  <div
+                    id="hp-bar-b"
+                    class="bg-gradient-to-r from-cyberPink to-red-500 h-full transition-all duration-300"
+                    style="width: 100%"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Stats Badge -->
+              <div
+                class="grid grid-cols-3 gap-1 mt-4 text-[10px] font-mono text-slate-400"
+              >
+                <div
+                  class="bg-slate-900/80 p-1.5 rounded border border-slate-800"
+                >
+                  <span class="block font-bold text-red-500">STR</span>
+                  <span>6</span>
+                </div>
+                <div
+                  class="bg-slate-900/80 p-1.5 rounded border border-slate-800"
+                >
+                  <span class="block font-bold text-emerald-400">AGI</span>
+                  <span>5</span>
+                </div>
+                <div
+                  class="bg-slate-900/80 p-1.5 rounded border border-slate-800"
+                >
+                  <span class="block font-bold text-cyberBlue">INT</span>
+                  <span>4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <button
+              id="btn-fight"
+              class="w-full py-4 bg-gradient-to-r from-cyberBlue to-cyan-500 text-darkBg font-mono font-black text-base uppercase rounded-xl shadow-[0_0_20px_rgba(0,243,255,0.3)] hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] transform hover:-translate-y-0.5 transition duration-300"
+            >
+              <i class="fa-solid fa-crosshairs mr-2"></i> INITIATE ON-CHAIN
+              FIGHT
+            </button>
+          </div>
+        </div>
+
+        <!-- TERMINAL LOG (MOCKING SOMNIA ON-CHAIN INFERENCE) -->
+        <div
+          class="bg-slate-950 border border-slate-800 rounded-2xl flex flex-col overflow-hidden h-[260px] shadow-2xl"
+        >
+          <!-- Tab Terminal -->
+          <div
+            class="flex justify-between items-center bg-slate-900 px-5 py-2.5 border-b border-slate-800/80"
+          >
+            <div class="flex items-center gap-2">
+              <span class="flex gap-1.5">
+                <span
+                  class="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block"
+                ></span>
+                <span
+                  class="w-2.5 h-2.5 rounded-full bg-yellow-500/80 inline-block"
+                ></span>
+                <span
+                  class="w-2.5 h-2.5 rounded-full bg-green-500/80 inline-block"
+                ></span>
+              </span>
+              <span class="text-xs font-mono text-slate-400 font-semibold ml-2"
+                >Somnia Deterministic LLM Consensus Node Log</span
+              >
+            </div>
+            <span id="gas-used" class="text-[10px] font-mono text-cyberBlue"
+              >GAS: 0 Gwei</span
+            >
+          </div>
+          <!-- Box Isi Log -->
+          <div
+            id="terminal-content"
+            class="p-4 flex-grow overflow-y-auto font-mono text-xs text-emerald-400/90 leading-relaxed custom-scrollbar flex flex-col gap-2"
+          >
+            <div class="text-slate-500">
+              [SYSTEM] Terminal siap. Selesaikan minting Gladiator terlebih
+              dahulu untuk mempersiapkan agent-first contract.
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-darkBg/50 py-6 mt-12">
+      <div
+        class="max-w-7xl mx-auto px-6 text-center text-xs text-slate-500 font-mono"
+      >
+        On-Chain Agent Colosseum © 2026. Built with Somnia Agent L1 SDK &
+        Deterministic LLM Inference.
+      </div>
+    </footer>
+
+    <!-- LOGIKA JAVASCRIPT DETIL UNTUK SIMULASI DAN GAMEPLAY -->
+    <script>
+      // Data State internal dApp
+      let pointsLimit = 15;
+      let isMinted = false;
+      let isFighting = false;
+
+      // Gladiators Properties
+      const gladiator = {
+        name: "CyberRonin v1.0",
+        str: 5,
+        agi: 5,
+        int: 5,
+        prompt:
+          "Bermain taktis. Utamakan pertahanan cerdas dan serang secara beruntun saat musuh lengah.",
+      };
+
+      const boss = {
+        name: "NexusReaper.EXE",
+        maxHp: 120,
+        hp: 120,
+        str: 6,
+        agi: 5,
+        int: 4,
+        prompt: "Serang habis-habisan dengan mengabaikan pertahanan.",
+      };
+
+      // DOM Elements
+      const elName = document.getElementById("glad-name");
+      const elStr = document.getElementById("stat-str");
+      const elAgi = document.getElementById("stat-agi");
+      const elInt = document.getElementById("stat-int");
+      const elPrompt = document.getElementById("glad-prompt");
+      const elBtnMint = document.getElementById("btn-mint");
+      const elBtnFight = document.getElementById("btn-fight");
+
+      const elValStr = document.getElementById("str-val");
+      const elValAgi = document.getElementById("agi-val");
+      const elValInt = document.getElementById("int-val");
+      const elPtsLeft = document.getElementById("stat-points-left");
+
+      const elArenaNameA = document.getElementById("arena-name-a");
+      const elArenaStrA = document.getElementById("arena-str-a");
+      const elArenaAgiA = document.getElementById("arena-agi-a");
+      const elArenaIntA = document.getElementById("arena-int-a");
+
+      const elHpTxtA = document.getElementById("hp-txt-a");
+      const elHpBarA = document.getElementById("hp-bar-a");
+      const elHpTxtB = document.getElementById("hp-txt-b");
+      const elHpBarB = document.getElementById("hp-bar-b");
+
+      const elTerminal = document.getElementById("terminal-content");
+      const elGasUsed = document.getElementById("gas-used");
+
+      const cardPlayer = document.getElementById("card-player");
+      const cardBoss = document.getElementById("card-boss");
+
+      // Init Default Form
+      elPrompt.value = gladiator.prompt;
+      updateStatLimit();
+
+      // Event Listener untuk Slider Statistik (Mencegah total melebihi 15)
+      [elStr, elAgi, elInt].forEach((slider) => {
+        slider.addEventListener("input", () => {
+          let currentTotal =
+            parseInt(elStr.value) +
+            parseInt(elAgi.value) +
+            parseInt(elInt.value);
+
+          if (currentTotal > pointsLimit) {
+            // Kurangi slider yang baru digeser agar tidak over limit
+            const overshoot = currentTotal - pointsLimit;
+            slider.value = parseInt(slider.value) - overshoot;
+          }
+
+          updateStatLimit();
+        });
+      });
+
+      function updateStatLimit() {
+        let str = parseInt(elStr.value);
+        let agi = parseInt(elAgi.value);
+        let int = parseInt(elInt.value);
+        let total = str + agi + int;
+
+        elValStr.innerText = str;
+        elValAgi.innerText = agi;
+        elValInt.innerText = int;
+
+        elPtsLeft.innerText = `Sisa Poin: ${pointsLimit - total}/15`;
+
+        if (total === pointsLimit) {
+          elPtsLeft.className =
+            "text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded";
+        } else {
+          elPtsLeft.className =
+            "text-xs font-mono text-cyberBlue font-bold bg-cyberBlue/10 px-2 py-0.5 rounded";
+        }
+      }
+
+      // Event Minting Gladiator NFT (Simulasi Transaksi Web3)
+      elBtnMint.addEventListener("click", () => {
+        if (isFighting) return;
+
+        isMinted = true;
+        gladiator.name = elName.value;
+        gladiator.str = parseInt(elStr.value);
+        gladiator.agi = parseInt(elAgi.value);
+        gladiator.int = parseInt(elInt.value);
+        gladiator.prompt = elPrompt.value;
+
+        // Sync Arena UI
+        elArenaNameA.innerText = gladiator.name;
+        elArenaStrA.innerText = gladiator.str;
+        elArenaAgiA.innerText = gladiator.agi;
+        elArenaIntA.innerText = gladiator.int;
+
+        elTerminal.innerHTML = "";
+        addLog(
+          `[TX CALL] Memulai penandatanganan transaksi untuk minting...`,
+          "slate-400",
+        );
+
+        setTimeout(() => {
+          addLog(
+            `[TESTNET BLOCK #789010] Berhasil memicu smart contract Colosseum::mintGladiator()`,
+            "cyberBlue",
+          );
+          addLog(
+            `[PARAMS] Name: "${gladiator.name}" | Stats: STR ${gladiator.str}, AGI ${gladiator.agi}, INT ${gladiator.int}`,
+            "slate-400",
+          );
+          addLog(
+            `[PROMPT STRATEGY ENCODED TO ABI] => "${gladiator.prompt.slice(0, 40)}..."`,
+            "cyberPurple",
+          );
+          addLog(
+            `[SUCCESS] Berhasil mencetak Gladiator AI NFT #2293. Ter-deploy di jaringan L1!`,
+            "emerald-400",
+          );
+          elGasUsed.innerText = "GAS: 0.00032 SOM";
+
+          // Efek visual sukses
+          cardPlayer.classList.add("neon-border-blue");
+        }, 1000);
+      });
+
+      // Event Pertarungan Deterministik On-Chain
+      elBtnFight.addEventListener("click", () => {
+        if (!isMinted) {
+          alert("Harap minting Gladiator AI Anda terlebih dahulu!");
+          return;
+        }
+        if (isFighting) return;
+
+        isFighting = true;
+        elBtnFight.disabled = true;
+        elBtnFight.innerText = "SIMULATING BATTLE ON-CHAIN...";
+        elBtnFight.classList.add("opacity-50");
+
+        // Reset HP
+        let hpA = 100;
+        let hpB = boss.maxHp;
+
+        updateHP("a", hpA, 100);
+        updateHP("b", hpB, boss.maxHp);
+
+        elTerminal.innerHTML = "";
+        addLog(
+          `[BLOCK ENGINE #789115] Mencari Validator Konsensus Somnia...`,
+          "slate-400",
+        );
+        addLog(
+          `[LLM CORE] Mengambil prompt instruksi deterministik dari AgentRegistry...`,
+          "cyberPurple",
+        );
+        addLog(
+          `[MATCH INIT] Gladiator "${gladiator.name}" vs Boss "${boss.name}"`,
+          "white font-bold",
+        );
+
+        setTimeout(() => runRound(1, hpA, hpB), 1500);
+      });
+
+      // Loop ronde simulasi deterministik AI pertarungan
+      function runRound(round, hpA, hpB) {
+        if (hpA <= 0 || hpB <= 0) {
+          resolveMatch(hpA, hpB);
+          return;
+        }
+
+        addLog(
+          `[ROUND ${round}] Validator mengevaluasi status pertarungan...`,
+          "yellow-400",
+        );
+
+        // Analisis deterministik dasar berdasarkan prompt gladiator
+        let isHealPrompt =
+          gladiator.prompt.toLowerCase().includes("heal") ||
+          gladiator.prompt.toLowerCase().includes("pulih");
+        let isCounterPrompt =
+          gladiator.prompt.toLowerCase().includes("counter") ||
+          gladiator.prompt.toLowerCase().includes("bertahan");
+        let isAggressivePrompt =
+          gladiator.prompt.toLowerCase().includes("agresif") ||
+          gladiator.prompt.toLowerCase().includes("serang");
+
+        // Simulasi giliran Gladiator A (Pemain)
+        let damageA = Math.floor(Math.random() * 8) + 4 + gladiator.str * 1.5;
+        let actionTextA = "";
+
+        if (isHealPrompt && hpA < 40 && Math.random() > 0.4) {
+          let heal = Math.floor(Math.random() * 10) + 5 + gladiator.int * 2;
+          hpA = Math.min(100, hpA + heal);
+          actionTextA = `🛡️ [PROMPT RESOLUTION] ${gladiator.name} mengeksekusi instruksi pemulihan diri! Pulih +${heal} HP.`;
+        } else if (isCounterPrompt && Math.random() > 0.5) {
+          damageA = Math.floor(damageA * 1.3);
+          actionTextA = `⚔️ [PROMPT RESOLUTION] ${gladiator.name} bertahan lalu melakukan counter-strike brutal sebesar ${damageA} DMG!`;
+          hpB -= damageA;
+        } else {
+          actionTextA = `🗡️ [ATTACK] ${gladiator.name} menyerang dengan kekuatan murni, menghasilkan ${damageA} DMG!`;
+          hpB -= damageA;
+        }
+
+        // Simulasi giliran Gladiator B (Boss)
+        let damageB = Math.floor(Math.random() * 8) + 5 + boss.str * 1.5;
+        let dodgeChance = 0.05 + gladiator.agi * 0.05; // Semakin lincah AGI, kesempatan menghindar semakin besar
+        let actionTextB = "";
+
+        if (Math.random() < dodgeChance) {
+          actionTextB = `💨 [DODGE] ${gladiator.name} berhasil menghindar secara deterministik berkat kecepatan tinggi! (AGI ${gladiator.agi})`;
+        } else {
+          actionTextB = `💥 [ATTACK] ${boss.name} melepaskan serangan balik maut sebesar ${damageB} DMG!`;
+          hpA -= damageB;
+        }
+
+        // Batasi minimum HP = 0
+        hpA = Math.max(0, hpA);
+        hpB = Math.max(0, hpB);
+
+        // Log output ke terminal simulator
+        addLog(actionTextA, "cyberBlue");
+        addLog(actionTextB, "cyberPink");
+
+        // Visual Damage Shake Effect
+        triggerShake(damageA > damageB ? "boss" : "player");
+
+        // Update bar HP
+        updateHP("a", hpA, 100);
+        updateHP("b", hpB, boss.maxHp);
+
+        setTimeout(() => runRound(round + 1, hpA, hpB), 2500);
+      }
+
+      // Menyelesaikan pertarungan
+      function resolveMatch(hpA, hpB) {
+        isFighting = false;
+        elBtnFight.disabled = false;
+        elBtnFight.innerText = "INITIATE ON-CHAIN FIGHT";
+        elBtnFight.classList.remove("opacity-50");
+
+        addLog(`=========================================`, "slate-500");
+        addLog(
+          `[BLOCK END #789128] Consensus Round Cleared! Finalizing Battle on EVM Smart Contract...`,
+          "yellow-400",
+        );
+
+        if (hpA > 0 && hpB <= 0) {
+          addLog(
+            `🏆 [VICTORY] ${gladiator.name} MEMENANGKAN PERTARUNGAN!`,
+            "emerald-400 font-bold glow-text-purple",
+          );
+          addLog(
+            `[REWARD] Berhasil mengklaim $5,000 SOM langsung ke Wallet Anda via Somnia L1!`,
+            "emerald-300",
+          );
+          triggerCelebration("player");
+        } else if (hpB > 0 && hpA <= 0) {
+          addLog(
+            `💀 [DEFEAT] ${gladiator.name} dikalahkan oleh ${boss.name}.`,
+            "cyberPink font-bold",
+          );
+          addLog(
+            `[TIP] Perbaiki Prompt Strategi Anda atau naikkan status INTELLIGENCE untuk taktik adaptif!`,
+            "slate-400",
+          );
+          triggerCelebration("boss");
+        } else {
+          addLog(`🤝 [DRAW] Pertarungan berakhir seimbang!`, "slate-300");
+        }
+
+        elGasUsed.innerText = "GAS: 0.00078 SOM";
+      }
+
+      // Helper: Tambah Baris Log Terminal
+      function addLog(text, colorClass) {
+        const row = document.createElement("div");
+        row.className = `text-${colorClass}`;
+        row.innerHTML = text;
+        elTerminal.appendChild(row);
+        elTerminal.scrollTop = elTerminal.scrollHeight;
+      }
+
+      // Helper: Update Presentase Nyawa (HP)
+      function updateHP(side, current, max) {
+        const pct = Math.max(0, (current / max) * 100);
+        if (side === "a") {
+          elHpTxtA.innerText = `${current}/100`;
+          elHpBarA.style.width = `${pct}%`;
+        } else {
+          elHpTxtB.innerText = `${current}/${max}`;
+          elHpBarB.style.width = `${pct}%`;
+        }
+      }
+
+      // Helper: Efek Getar Saat Menerima Serangan
+      function triggerShake(target) {
+        const card = target === "player" ? cardPlayer : cardBoss;
+        card.classList.add("animate-bounce");
+        setTimeout(() => card.classList.remove("animate-bounce"), 500);
+      }
+
+      // Helper: Efek Visual Pemenang
+      function triggerCelebration(winner) {
+        const card = winner === "player" ? cardPlayer : cardBoss;
+        card.classList.add("scale-105", "shadow-2xl", "battle-pulse");
+        setTimeout(
+          () =>
+            card.classList.remove("scale-105", "shadow-2xl", "battle-pulse"),
+          4000,
+        );
+      }
+    </script>
+    <script>
+      // Konfigurasi Alamat Kontrak Somnia Lu
+      const contractAddress = "0x17F24D3b8Bc1150553b54Da30B4d993AcB889212";
+
+      const contractABI = [
+        "function mintGladiator(string memory _name, uint8 _strength, uint8 _agility, uint8 _intelligence, string memory _strategyPrompt) external",
+        "function getGladiator(uint256 _id) external view returns (tuple(uint256 id, string name, uint8 strength, uint8 agility, uint8 intelligence, string strategyPrompt, address owner, uint256 wins, uint256 battles))",
+      ];
+
+      let provider, signer, contract;
+
+      // Fungsi untuk mengoneksikan MetaMask lu
+      async function connectWallet() {
+        if (window.ethereum) {
+          try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = await provider.getSigner();
+            contract = new ethers.Contract(
+              contractAddress,
+              contractABI,
+              signer,
+            );
+
+            console.log("Wallet Connected!");
+
+            // BONUS: Mengubah teks tombol menjadi alamat wallet lu (potong depan-belakang)
+            const userAddress = await signer.getAddress();
+            if (document.getElementById("btn-connect")) {
+              document.getElementById("btn-connect").innerHTML =
+                `<i class="fa-solid fa-wallet mr-2"></i>${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+            }
+
+            // Langsung sinkronisasikan data setelah konek
+            await updateUIWithBlockchainData();
+          } catch (err) {
+            console.error("Koneksi gagal:", err);
+          }
+        } else {
+          alert("MetaMask tidak terdeteksi!");
+        }
+      }
+
+      // Fungsi memasukkan data blockchain ke elemen UI lama lu
+      async function updateUIWithBlockchainData() {
+        if (!contract) return;
+        try {
+          // ==========================================
+          // 1. AMBIL & UPDATE DATA GLADIATOR #0 (Pemain)
+          // ==========================================
+          const f0 = await contract.getGladiator(0);
+
+          if (document.getElementById("f0Name"))
+            document.getElementById("f0Name").innerText = f0.name;
+          if (document.getElementById("f0Wins"))
+            document.getElementById("f0Wins").innerText = f0.wins.toString();
+
+          // Update 3 angka stats dasar di UI lu
+          if (document.getElementById("f0Str"))
+            document.getElementById("f0Str").innerText = f0.strength.toString();
+          if (document.getElementById("f0Agi"))
+            document.getElementById("f0Agi").innerText = f0.agility.toString();
+          if (document.getElementById("f0Int"))
+            document.getElementById("f0Int").innerText =
+              f0.intelligence.toString();
+
+          // ==========================================
+          // 2. AMBIL & UPDATE DATA GLADIATOR #1 (Boss / Lawan)
+          // ==========================================
+          const f1 = await contract.getGladiator(1);
+
+          if (document.getElementById("arena-name-b"))
+            document.getElementById("arena-name-b").innerText = f1.name;
+          if (document.getElementById("f1Wins"))
+            document.getElementById("f1Wins").innerText = f1.wins.toString();
+
+          console.log(
+            "Data UI & Stats sukses disinkronkan total dengan Somnia L1!",
+          );
+        } catch (err) {
+          console.error("Gagal memuat data dari blockchain:", err);
+        }
+      }
+
+      // Fungsi untuk mengambil input form web dan eksekusi minting on-chain
+      async function mintGladiator() {
+        if (!contract) {
+          return alert("Hubungkan MetaMask lu terlebih dahulu!");
+        }
+
+        // Membaca ID input dari panel kiri HTML lu secara presisi
+        const name = document.getElementById("glad-name").value;
+        const str = parseInt(document.getElementById("stat-str").value);
+        const agi = parseInt(document.getElementById("stat-agi").value);
+        const int = parseInt(document.getElementById("stat-int").value);
+        const prompt = document.getElementById("glad-prompt").value;
+
+        if (!name || !prompt) {
+          return alert("Nama dan Prompt Strategi wajib diisi!");
+        }
+
+        try {
+          console.log(`Mengirim transaksi minting untuk: ${name}...`);
+          const tx = await contract.mintGladiator(name, str, agi, int, prompt);
+          console.log(
+            `Transaksi terkirim! Menunggu konfirmasi blok. Hash: ${tx.hash}`,
+          );
+
+          await tx.wait();
+          alert(
+            `Sukses! Gladiator ${name} berhasil dicetak di Jaringan Somnia!`,
+          );
+
+          // Otomatis refresh data di layar web setelah transaksi kelar
+          await updateUIWithBlockchainData();
+        } catch (err) {
+          console.error("Minting gagal:", err);
+        }
+      }
+
+      // Jalankan otomatis saat web dibuka (jika dompet sudah terhubung sebelumnya)
+      if (window.ethereum) {
+        connectWallet();
+      }
+    </script>
+  </body>
+</html>

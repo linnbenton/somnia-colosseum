@@ -1,0 +1,12 @@
+# Mengabaikan folder dependency npm
+node_modules/
+npm-debug.log
+
+# Mengabaikan data sensitif privat (Kunci Dompet & API)
+.env
+.env.local
+.env.production
+
+# Mengabaikan folder log sistem operasi
+.DS_Store
+Thumbs.db
