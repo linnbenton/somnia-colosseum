@@ -887,6 +887,43 @@
       async function connectWallet() {
         if (window.ethereum) {
           try {
+            // Chain ID Somnia Shannon Testnet biasanya tetap atau disesuaikan,
+            // Kita gunakan target hex 0xc487 (50311). Jika Chain ID berubah, ganti di sini.
+            const targetChainId = "0xc487";
+
+            // Paksa MetaMask pindah ke Somnia Shannon Testnet otomatis
+            try {
+              await window.ethereum.request({
+                method: "wallet_switchEthereumChain",
+                params: [{ chainId: targetChainId }],
+              });
+            } catch (switchError) {
+              // Jika belum terdaftar di MetaMask juri / user, daftarkan dengan RPC & Explorer Baru Lu:
+              if (switchError.code === 4902) {
+                await window.ethereum.request({
+                  method: "wallet_addEthereumChain",
+                  params: [
+                    {
+                      chainId: targetChainId,
+                      chainName: "Somnia Shannon Testnet",
+                      nativeCurrency: {
+                        name: "STG",
+                        symbol: "STG",
+                        decimals: 18,
+                      },
+                      rpcUrls: ["https://dream-rpc.somnia.network"], // RPC BARU LU
+                      blockExplorerUrls: [
+                        "https://shannon-explorer.somnia.network/",
+                      ], // EXPLORER BARU LU
+                    },
+                  ],
+                });
+              } else {
+                throw switchError;
+              }
+            }
+
+            // Inisialisasi Ethers seperti biasa setelah jaringan dipastikan aman
             provider = new ethers.BrowserProvider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             signer = await provider.getSigner();
@@ -896,16 +933,15 @@
               signer,
             );
 
-            console.log("Wallet Connected!");
+            console.log("Wallet Connected to Somnia Shannon Testnet!");
 
-            // BONUS: Mengubah teks tombol menjadi alamat wallet lu (potong depan-belakang)
+            // Update UI teks tombol wallet
             const userAddress = await signer.getAddress();
             if (document.getElementById("btn-connect")) {
               document.getElementById("btn-connect").innerHTML =
                 `<i class="fa-solid fa-wallet mr-2"></i>${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
             }
 
-            // Langsung sinkronisasikan data setelah konek
             await updateUIWithBlockchainData();
           } catch (err) {
             console.error("Koneksi gagal:", err);
