@@ -96,6 +96,51 @@
       .battle-pulse {
         animation: pulse-fast 1.5s infinite ease-in-out;
       }
+      /* Custom Neon Range Sliders */
+      #stat-str {
+        accent-color: #ff007a;
+      }
+      #stat-agi {
+        accent-color: #10b981;
+      }
+      #stat-int {
+        accent-color: #00f3ff;
+      }
+
+      /* Disabled button style */
+      #btn-fight:disabled {
+        background: #1e293b !important;
+        color: #475569 !important;
+        box-shadow: none !important;
+        cursor: not-allowed;
+      }
+      /* Animasi Tulisan Status */
+      .status-msg-animate {
+        animation: neonPulse 2s infinite ease-in-out;
+        text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+      }
+
+      @keyframes neonPulse {
+        0%,
+        100% {
+          opacity: 0.5;
+          transform: scale(0.98);
+          filter: brightness(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1);
+          filter: brightness(1.5);
+          color: #00f3ff; /* Biru Neon Cerah */
+        }
+      }
+
+      /* Style untuk status Sukses (Hijau Neon) */
+      .status-msg-success {
+        animation: none !important;
+        color: #10b981 !important;
+        text-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+      }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
   </head>
@@ -294,6 +339,56 @@
           >
             <i class="fa-solid fa-cube mr-2"></i> Mint & Deploy Agent NFT
           </button>
+
+          <div
+            id="explorer-verification"
+            class="hidden bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 font-mono text-xs transition duration-300"
+          >
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="flex items-center gap-1.5">
+                <i
+                  class="fa-solid fa-circle-notch text-cyberBlue animate-spin text-[10px]"
+                  id="explorer-status-icon"
+                ></i>
+                <span
+                  id="explorer-status-text"
+                  class="uppercase text-[10px] font-bold tracking-wider text-cyberBlue"
+                  >Processing Transaction...</span
+                >
+              </span>
+              <span class="text-[9px] text-slate-500 uppercase"
+                >L1 Telemetry</span
+              >
+            </div>
+
+            <div
+              class="flex flex-col gap-1.5 bg-slate-900/50 p-2.5 rounded-lg border border-slate-800"
+            >
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 text-[10px]">TX HASH:</span>
+                <span
+                  id="explorer-hash"
+                  class="text-slate-300 text-[11px] truncate max-w-[180px]"
+                  >0x...</span
+                >
+              </div>
+              <div
+                class="mt-2 pt-2 border-t border-slate-800/60 flex justify-end"
+              >
+                <a
+                  id="explorer-link"
+                  href="#"
+                  target="_blank"
+                  class="text-cyberBlue hover:text-cyan-400 text-[11px] flex items-center gap-1 font-bold no-underline transition"
+                >
+                  View on Shannon Explorer
+                  <i
+                    class="fa-solid fa-arrow-up-right-from-square text-[9px]"
+                  ></i>
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -480,11 +575,19 @@
           <div class="flex flex-col gap-3">
             <button
               id="btn-fight"
-              class="w-full py-4 bg-gradient-to-r from-cyberBlue to-cyan-500 text-darkBg font-mono font-black text-base uppercase rounded-xl shadow-[0_0_20px_rgba(0,243,255,0.3)] hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] transform hover:-translate-y-0.5 transition duration-300"
+              disabled
+              class="w-full py-4 bg-slate-800 text-slate-500 cursor-not-allowed font-mono font-black text-base uppercase rounded-xl transition duration-300"
             >
-              <i class="fa-solid fa-crosshairs mr-2"></i> INITIATE ON-CHAIN
-              FIGHT
+              <i class="fa-solid fa-lock mr-2"></i> INITIATE ON-CHAIN BATTLE
             </button>
+
+            <div
+              id="fight-status-label"
+              class="status-msg-animate text-center font-mono text-[11px] uppercase tracking-[0.2em] text-cyberBlue font-bold"
+            >
+              <i class="fa-solid fa-triangle-exclamation mr-1"></i> Mint NFT to
+              Unlock the Battle
+            </div>
           </div>
         </div>
 
@@ -888,17 +991,17 @@
       async function connectWallet() {
         if (window.ethereum) {
           try {
-            // Target Chain ID for Somnia Shannon Testnet (50311 in Hex is 0xc487)
-            const targetChainId = "0xc487";
+            // FIX: Diubah ke 0xc488 (50312) sesuai dengan data Shannon Testnet terbaru di MetaMask lu
+            const targetChainId = "0xc488";
 
-            // Force MetaMask to switch to Somnia Shannon Testnet automatically
+            // Paksa MetaMask untuk pindah ke Somnia Shannon Testnet otomatis
             try {
               await window.ethereum.request({
                 method: "wallet_switchEthereumChain",
                 params: [{ chainId: targetChainId }],
               });
             } catch (switchError) {
-              // If the network is not added to the user's MetaMask, add it automatically
+              // Jika jaringan belum ada di MetaMask, daftarkan otomatis dengan ID yang benar
               if (switchError.code === 4902) {
                 await window.ethereum.request({
                   method: "wallet_addEthereumChain",
@@ -923,7 +1026,7 @@
               }
             }
 
-            // Initialize Ethers provider and signer after ensuring correct network
+            // Inisialisasi Ethers seperti biasa setelah Chain ID sinkron
             provider = new ethers.BrowserProvider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             signer = await provider.getSigner();
@@ -933,16 +1036,14 @@
               signer,
             );
 
-            console.log("Wallet Connected to Somnia Shannon Testnet!");
+            console.log("Wallet Connected to Somnia Shannon Testnet (0xc488)!");
 
-            // Format and display shortened wallet address on the connect button
             const userAddress = await signer.getAddress();
             if (document.getElementById("btn-connect")) {
               document.getElementById("btn-connect").innerHTML =
                 `<i class="fa-solid fa-wallet mr-2"></i>${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
             }
 
-            // Sync blockchain data with the UI immediately after connecting
             await updateUIWithBlockchainData();
           } catch (err) {
             console.error("Wallet connection failed:", err);
@@ -997,37 +1098,127 @@
 
       // Function to gather web form inputs and execute on-chain minting
       async function mintGladiator() {
+        // 1. Validasi awal koneksi contract
         if (!contract) {
           return alert("Please connect your MetaMask wallet first!");
         }
 
-        // Fetch values from your HTML input fields
-        const name = document.getElementById("glad-name").value;
-        const str = parseInt(document.getElementById("stat-str").value);
-        const agi = parseInt(document.getElementById("stat-agi").value);
-        const int = parseInt(document.getElementById("stat-int").value);
-        const prompt = document.getElementById("glad-prompt").value;
+        // 2. Ambil elemen DOM input
+        const nameEl = document.getElementById("glad-name");
+        const strEl = document.getElementById("stat-str");
+        const agiEl = document.getElementById("stat-agi");
+        const intEl = document.getElementById("stat-int");
+        const promptEl = document.getElementById("glad-prompt");
 
-        if (!name || !prompt) {
+        // 3. Ambil elemen DOM status UI & terminal
+        const terminal = document.getElementById("terminal-content");
+        const btnFight = document.getElementById("btn-fight");
+        const statusLabel = document.getElementById("fight-status-label");
+        const expPanel = document.getElementById("explorer-verification");
+        const expHash = document.getElementById("explorer-hash");
+
+        // 4. Validasi isi input data gladiator
+        if (!nameEl || !promptEl || !nameEl.value || !promptEl.value) {
           return alert("Gladiator Name and Strategy Prompt are required!");
         }
 
+        const name = nameEl.value;
+        const str = parseInt(strEl.value) || 5;
+        const agi = parseInt(agiEl.value) || 5;
+        const int = parseInt(intEl.value) || 5;
+        const prompt = promptEl.value;
+
+        // 5. Validasi Aturan Batas Maksimal Poin Stats (Max 15)
+        if (str + agi + int > 15) {
+          if (terminal) {
+            terminal.innerHTML += `<div class="text-red-500 mt-2">[REJECTED] Total stats (${str + agi + int}) exceed maximum limit of 15 points!</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+          }
+          return alert(
+            "Total Attribute Allocation cannot exceed 15 points! Please lower your sliders.",
+          );
+        }
+
         try {
-          console.log(`Sending mint transaction for: ${name}...`);
+          if (terminal) {
+            terminal.innerHTML += `<div class="text-slate-400 mt-2">[SYSTEM] Initiating minting sequence for "${name}"... Please confirm in MetaMask.</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+          }
+
+          // 1. Kirim transaksi ke Smart Contract
           const tx = await contract.mintGladiator(name, str, agi, int, prompt);
-          console.log(
-            `Transaction sent! Waiting for block confirmation. Hash: ${tx.hash}`,
-          );
 
+          // 2. Transaksi dikirim -> Tampilkan panel & isi Tx Hash + Link Explorer yang BENAR
+          const expStatusIcon = document.getElementById("explorer-status-icon");
+          const expStatusText = document.getElementById("explorer-status-text");
+          const expLink = document.getElementById("explorer-link");
+
+          if (expPanel) expPanel.classList.remove("hidden");
+          if (expHash) expHash.innerText = tx.hash;
+
+          // FIX LINK EXPLORER: Mengarah langsung ke Somnia Shannon Explorer asli
+          if (expLink) {
+            expLink.href = `https://shannon-explorer.somnia.network/tx/${tx.hash}`;
+          }
+
+          if (terminal) {
+            terminal.innerHTML += `<div class="text-cyberBlue mt-1">[PENDING] Transaction sent! Waiting for block confirmation...</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+          }
+
+          // 3. TUNGGU KONFIRMASI BLOK BLOCKCHAIN
           await tx.wait();
-          alert(
-            `Success! Gladiator "${name}" has been minted on the Somnia Network!`,
-          );
 
-          // Automatically refresh the dashboard data once the transaction is confirmed
+          // 4. FIX STATUS VIEW EXPLORER: Setelah sukses, ubah teks & ikon menjadi hijau!
+          if (expStatusIcon) {
+            expStatusIcon.className =
+              "fa-solid fa-circle-check text-emerald-400 text-[10px] animate-none";
+          }
+          if (expStatusText) {
+            expStatusText.innerText = "Confirmed / Success";
+            expStatusText.className =
+              "uppercase text-[10px] font-bold tracking-wider text-emerald-400";
+          }
+
+          // 5. Update log terminal
+          if (terminal) {
+            terminal.innerHTML += `<div class="text-emerald-400 mt-2">[SUCCESS] Gladiator "${name}" successfully deployed to Somnia L1.</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+          }
+
+          // 6. Buka kunci tombol Fight
+          if (btnFight) {
+            btnFight.disabled = false;
+            btnFight.classList.remove(
+              "bg-slate-800",
+              "text-slate-500",
+              "cursor-not-allowed",
+            );
+            btnFight.classList.add(
+              "bg-gradient-to-r",
+              "from-cyberBlue",
+              "to-cyan-500",
+              "text-darkBg",
+              "shadow-[0_0_20px_rgba(0,243,255,0.4)]",
+            );
+            btnFight.innerHTML = `<i class="fa-solid fa-crosshairs mr-2"></i> INITIATE ON-CHAIN FIGHT`;
+          }
+
+          // 7. Ubah label status di bawah tombol menjadi hijau stabil
+          if (statusLabel) {
+            statusLabel.classList.remove("status-msg-animate");
+            statusLabel.classList.add("status-msg-success");
+            statusLabel.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Agent Authorized & Combat Ready`;
+          }
+
+          // 8. Refresh data dari blockchain
           await updateUIWithBlockchainData();
         } catch (err) {
-          console.error("Minting process failed:", err);
+          console.error("Minting processing failure:", err);
+          if (terminal) {
+            terminal.innerHTML += `<div class="text-red-500 mt-2">[ERROR] Transaction failed or rejected by user.</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+          }
         }
       }
 
